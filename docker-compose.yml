@@ -1,0 +1,188 @@
+services:
+  # ==========================================
+  # Infrastructure Services
+  # ==========================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: momentum-postgres
+    environment:
+      POSTGRES_USER: momentum
+      POSTGRES_PASSWORD: momentum
+      POSTGRES_DB: momentum
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/docker/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U momentum"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  postgres-replica:
+    image: postgres:16-alpine
+    container_name: momentum-postgres-replica
+    environment:
+      POSTGRES_USER: momentum
+      POSTGRES_PASSWORD: momentum
+      POSTGRES_DB: momentum
+    ports:
+      - "5433:5432"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  redis:
+    image: redis:7-alpine
+    container_name: momentum-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --notify-keyspace-events Ex --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.17.0
+    container_name: momentum-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.name=momentum-search
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.7.0
+    container_name: momentum-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+
+  kafka:
+    image: confluentinc/cp-kafka:7.7.0
+    container_name: momentum-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-topics", "--bootstrap-server", "localhost:9092", "--list"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+  # ==========================================
+  # Application Services (built from submodules)
+  # ==========================================
+  api-gateway:
+    build:
+      context: ./services/api-gateway
+      dockerfile: Dockerfile
+    container_name: momentum-api-gateway
+    ports:
+      - "3000:3000"
+    environment:
+      - API_GATEWAY_PORT=3000
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - JWT_SECRET=development-secret
+      - EVENT_SERVICE_PORT=3001
+      - BOOKING_SERVICE_PORT=3002
+      - SEARCH_SERVICE_PORT=3003
+      - RATE_LIMIT_TTL=60
+      - RATE_LIMIT_MAX=100
+      - QUEUE_TOKEN_SECRET=dev-queue-secret
+    depends_on:
+      redis:
+        condition: service_healthy
+    profiles:
+      - app
+
+  event-service:
+    build:
+      context: ./services/event-service
+      dockerfile: Dockerfile
+    container_name: momentum-event-service
+    ports:
+      - "3001:3001"
+    environment:
+      - EVENT_SERVICE_PORT=3001
+      - DATABASE_URL=postgresql://momentum:momentum@postgres:5432/momentum
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - app
+
+  booking-service:
+    build:
+      context: ./services/booking-service
+      dockerfile: Dockerfile
+    container_name: momentum-booking-service
+    ports:
+      - "3002:3002"
+    environment:
+      - BOOKING_SERVICE_PORT=3002
+      - DATABASE_URL=postgresql://momentum:momentum@postgres:5432/momentum
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - STRIPE_SECRET_KEY=sk_test_xxx
+      - RESERVATION_TTL_SECONDS=420
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    profiles:
+      - app
+
+  search-service:
+    build:
+      context: ./services/search-service
+      dockerfile: Dockerfile
+    container_name: momentum-search-service
+    ports:
+      - "3003:3003"
+    environment:
+      - SEARCH_SERVICE_PORT=3003
+      - DATABASE_URL=postgresql://momentum:momentum@postgres:5432/momentum
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+    profiles:
+      - app
+
+volumes:
+  postgres_data:
+  redis_data:
+  elasticsearch_data:

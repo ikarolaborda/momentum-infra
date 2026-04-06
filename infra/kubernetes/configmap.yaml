@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: momentum-config
+  namespace: momentum
+data:
+  API_GATEWAY_PORT: "3000"
+  EVENT_SERVICE_PORT: "3001"
+  BOOKING_SERVICE_PORT: "3002"
+  SEARCH_SERVICE_PORT: "3003"
+  REDIS_HOST: "redis-cluster"
+  REDIS_PORT: "6379"
+  ELASTICSEARCH_NODE: "http://elasticsearch:9200"
+  KAFKA_BROKERS: "kafka:9092"
+  RATE_LIMIT_TTL: "60"
+  RATE_LIMIT_MAX: "100"
+  RESERVE_RATE_LIMIT_MAX: "10"
+  RESERVATION_TTL_SECONDS: "420"
+  LOG_LEVEL: "info"
+  JWT_EXPIRATION: "1h"

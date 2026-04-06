@@ -1,0 +1,34 @@
+{
+  "name": "momentum-infra",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Infrastructure repository for the Momentum ticketing platform",
+  "scripts": {
+    "setup": "bash scripts/setup.sh",
+    "setup:submodules": "git submodule update --init --recursive",
+    "install:all": "bash scripts/install-all.sh",
+    "dev": "docker compose up -d && bash scripts/start-all.sh",
+    "dev:infra": "docker compose up -d",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:build": "docker compose build",
+    "db:migrate": "cd packages/database && npx prisma migrate deploy",
+    "db:seed": "cd packages/database && npx ts-node prisma/seed.ts",
+    "db:generate": "cd packages/database && npx prisma generate",
+    "db:studio": "cd packages/database && npx prisma studio",
+    "test:e2e": "jest --config tests/e2e/jest.config.ts",
+    "test:integration": "jest --config tests/integration/jest.config.ts",
+    "reindex": "bash scripts/reindex.sh",
+    "loadtest:events": "k6 run load-tests/k6/event-listing.js",
+    "loadtest:search": "k6 run load-tests/k6/search.js",
+    "loadtest:booking": "k6 run load-tests/k6/reserve-booking.js",
+    "loadtest:surge": "k6 run load-tests/k6/hot-event-surge.js"
+  },
+  "devDependencies": {
+    "jest": "^30.0.0",
+    "@jest/globals": "^30.0.0",
+    "ts-jest": "^29.3.0",
+    "typescript": "^5.7.0",
+    "@types/node": "^22.0.0"
+  }
+}

@@ -1,0 +1,24 @@
+[submodule "services/api-gateway"]
+	path = services/api-gateway
+	url = https://github.com/ikarolaborda/momentum-api-gateway.git
+	branch = main
+[submodule "services/event-service"]
+	path = services/event-service
+	url = https://github.com/ikarolaborda/momentum-event-service.git
+	branch = main
+[submodule "services/booking-service"]
+	path = services/booking-service
+	url = https://github.com/ikarolaborda/momentum-booking-service.git
+	branch = main
+[submodule "services/search-service"]
+	path = services/search-service
+	url = https://github.com/ikarolaborda/momentum-search-service.git
+	branch = main
+[submodule "packages/shared"]
+	path = packages/shared
+	url = https://github.com/ikarolaborda/momentum-shared.git
+	branch = main
+[submodule "packages/database"]
+	path = packages/database
+	url = https://github.com/ikarolaborda/momentum-database.git
+	branch = main

@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-service
+  namespace: momentum
+  labels:
+    app: search-service
+    tier: backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: search-service
+  template:
+    metadata:
+      labels:
+        app: search-service
+        tier: backend
+    spec:
+      containers:
+        - name: search-service
+          image: momentum/search-service:latest
+          ports:
+            - containerPort: 3003
+          envFrom:
+            - configMapRef:
+                name: momentum-config
+            - secretRef:
+                name: momentum-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 3003
+            initialDelaySeconds: 15
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3003
+            initialDelaySeconds: 20
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: search-service
+  namespace: momentum
+spec:
+  selector:
+    app: search-service
+  ports:
+    - port: 3003
+      targetPort: 3003
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: search-service-hpa
+  namespace: momentum
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: search-service
+  minReplicas: 3
+  maxReplicas: 20
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
