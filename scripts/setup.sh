@@ -14,18 +14,18 @@ echo "1. Initializing git submodules..."
 git submodule update --init --recursive
 
 echo "2. Installing dependencies for shared packages..."
-cd packages/shared && npm install && npm run build && cd ../..
-cd packages/database && npm install && cd ../..
+cd momentum-shared && npm install && npm run build && cd ../..
+cd momentum-database && npm install && cd ../..
 
 echo "3. Installing dependencies for services..."
 for service in api-gateway event-service booking-service search-service; do
   echo "   Installing $service..."
-  cd "services/$service"
+  cd "$service"
 
   # Link/copy prisma schema for services that need it
   if [ "$service" != "api-gateway" ]; then
     rm -rf prisma
-    cp -r ../../packages/database/prisma ./prisma
+    cp -r ../../momentum-database/prisma ./prisma
     npx prisma generate
   fi
 
@@ -45,12 +45,12 @@ echo "   Waiting for Elasticsearch..."
 until curl -sf http://localhost:9200/_cluster/health > /dev/null 2>&1; do sleep 1; done
 
 echo "6. Running database migrations..."
-cd packages/database
+cd momentum-database
 npx prisma migrate dev --name init 2>/dev/null || npx prisma migrate deploy
 cd ../..
 
 echo "7. Seeding database..."
-cd packages/database && npx ts-node prisma/seed.ts && cd ../..
+cd momentum-database && npx ts-node prisma/seed.ts && cd ../..
 
 echo ""
 echo "=== Setup Complete! ==="
@@ -59,10 +59,10 @@ echo "Start all services:"
 echo "  bash scripts/start-all.sh"
 echo ""
 echo "Or start individually:"
-echo "  cd services/api-gateway && npm run start:dev"
-echo "  cd services/event-service && npm run start:dev"
-echo "  cd services/booking-service && npm run start:dev"
-echo "  cd services/search-service && npm run start:dev"
+echo "  cd momentum-api-gateway && npm run start:dev"
+echo "  cd momentum-event-service && npm run start:dev"
+echo "  cd momentum-booking-service && npm run start:dev"
+echo "  cd momentum-search-service && npm run start:dev"
 echo ""
 echo "Service endpoints:"
 echo "  API Gateway:     http://localhost:3000 (Swagger: http://localhost:3000/docs)"

@@ -1,0 +1,24 @@
+[submodule "momentum-shared"]
+	path = momentum-shared
+	url = https://github.com/ikarolaborda/momentum-shared.git
+	branch = main
+[submodule "momentum-database"]
+	path = momentum-database
+	url = https://github.com/ikarolaborda/momentum-database.git
+	branch = main
+[submodule "momentum-api-gateway"]
+	path = momentum-api-gateway
+	url = https://github.com/ikarolaborda/momentum-api-gateway.git
+	branch = main
+[submodule "momentum-event-service"]
+	path = momentum-event-service
+	url = https://github.com/ikarolaborda/momentum-event-service.git
+	branch = main
+[submodule "momentum-booking-service"]
+	path = momentum-booking-service
+	url = https://github.com/ikarolaborda/momentum-booking-service.git
+	branch = main
+[submodule "momentum-search-service"]
+	path = momentum-search-service
+	url = https://github.com/ikarolaborda/momentum-search-service.git
+	branch = main

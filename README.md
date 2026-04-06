@@ -7,20 +7,18 @@ This repository uses **git submodules** to reference all service and package rep
 ## Architecture
 
 ```
-momentum-infra/           ← You are here
-├── services/
-│   ├── api-gateway/      → git submodule → momentum-api-gateway
-│   ├── event-service/    → git submodule → momentum-event-service
-│   ├── booking-service/  → git submodule → momentum-booking-service
-│   └── search-service/   → git submodule → momentum-search-service
-├── packages/
-│   ├── shared/           → git submodule → momentum-shared
-│   └── database/         → git submodule → momentum-database
-├── infra/                Infrastructure configs (K8s, Docker)
-├── docs/                 Architecture docs, ADRs, runbooks
-├── tests/                Cross-service integration & e2e tests
-├── load-tests/           k6 load test scripts
-└── scripts/              Platform-wide utility scripts
+momentum-infra/                    ← You are here
+├── momentum-api-gateway/          → git submodule
+├── momentum-event-service/        → git submodule
+├── momentum-booking-service/      → git submodule
+├── momentum-search-service/       → git submodule
+├── momentum-shared/               → git submodule
+├── momentum-database/             → git submodule
+├── infra/                         Infrastructure configs (K8s, Docker)
+├── docs/                          Architecture docs, ADRs, runbooks
+├── tests/                         Cross-service integration & e2e tests
+├── load-tests/                    k6 load test scripts
+└── scripts/                       Platform-wide utility scripts
 ```
 
 ## System Diagram
@@ -120,7 +118,7 @@ git submodule update --remote --merge
 ### Working on a specific service
 
 ```bash
-cd services/event-service
+cd momentum-event-service
 git checkout -b feature/my-feature
 # ... make changes ...
 git commit -m "feat: add new endpoint"
@@ -131,8 +129,8 @@ git push origin feature/my-feature
 ### After service PRs are merged
 
 ```bash
-git submodule update --remote services/event-service
-git add services/event-service
+git submodule update --remote momentum-event-service
+git add momentum-event-service
 git commit -m "chore: update event-service submodule"
 git push
 ```

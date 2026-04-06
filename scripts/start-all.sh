@@ -8,24 +8,24 @@ echo ""
 # Copy prisma schema to services that need it
 for service in event-service booking-service search-service; do
   if [ ! -d "services/$service/prisma" ]; then
-    cp -r packages/database/prisma "services/$service/prisma"
+    cp -r momentum-database/prisma "services/$service/prisma"
   fi
 done
 
 # Start all services in background
-cd services/api-gateway && npm run start:dev &
+cd momentum-api-gateway && npm run start:dev &
 PID1=$!
 cd ../..
 
-cd services/event-service && npm run start:dev &
+cd momentum-event-service && npm run start:dev &
 PID2=$!
 cd ../..
 
-cd services/booking-service && npm run start:dev &
+cd momentum-booking-service && npm run start:dev &
 PID3=$!
 cd ../..
 
-cd services/search-service && npm run start:dev &
+cd momentum-search-service && npm run start:dev &
 PID4=$!
 cd ../..
 
